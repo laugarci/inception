@@ -1,0 +1,62 @@
+version: '3'
+
+networks:
+    laugarcinet: 
+      name: laugarcinet
+      driver: bridge
+
+services:
+  nginx:
+    container_name: nginx
+    build: ./requirements/nginx
+    image: nginx
+    ports:
+      - "443:443"
+    networks:
+      - laugarcinet
+    volumes:
+      - wordpress_data:/var/www/html
+    restart: always
+
+
+  mariadb:
+    container_name: mariadb
+    build:
+      context: ./requirements/mariadb
+    image: mariadb
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    restart: always
+    networks:
+      - laugarcinet
+    env_file:
+      - .env
+
+  wordpress:
+    container_name: wordpress
+    build: ./requirements/wordpress
+    image: wordpress
+    depends_on:
+      - mariadb
+    volumes:
+      - wordpress_data:/var/www/html
+    restart: always
+    networks:
+      - laugarcinet
+    env_file:
+      - .env
+
+volumes:
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/laugarci/data/mysql
+      o: bind
+
+  wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/laugarci/data/wordpress
+      o: bind
